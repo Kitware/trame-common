@@ -30,6 +30,7 @@ classes and function in meaningful groups.
   async, throttle, debounce, thread, process).
 - **trame_common.obj**: Contains helpers for common trame objects (i.e.
   Component, App, Widget, Singleton)
+- **trame_common.utils**: Contains utility functions.
 
 ## License
 
