@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-03-31)
+
+### Features
+
+- **version**: Add version utility function
+  ([`85de2b2`](https://github.com/Kitware/trame-common/commit/85de2b2aaab1e10e26fff1f88efbd8f98eaeb1a8))
+
+
 ## v0.1.0 (2025-03-31)
 
 ### Features
