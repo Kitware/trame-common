@@ -14,8 +14,12 @@ class TrameApp(TrameComponent):
         super().__init__(get_server(server, client_type=client_type), ctx_name=ctx_name)
 
     async def _async_display(self):
+        from IPython.display import clear_output
+
         await self.ui.ready
+        clear_output(wait=True)
         self.ui._ipython_display_()
 
-    def _ipython_display_(self):
+    def _repr_html_(self):
         create_task(self._async_display())
+        return "<i>Launching trame server in the background...</i>"
