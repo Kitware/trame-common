@@ -21,7 +21,7 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
@@ -46,7 +46,7 @@ jobs:
         runs-on: [ubuntu-latest, windows-latest, macos-14]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -82,12 +82,12 @@ jobs:
       url: https://pypi.org/p/trame-common
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Python Semantic Release
         id: release
-        uses: python-semantic-release/python-semantic-release@v10.3.0
+        uses: python-semantic-release/python-semantic-release@v10.3.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # for debug output
