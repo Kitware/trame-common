@@ -170,6 +170,7 @@ class LifeCycle:
         - client_exited
         - server_exited
         - server_reload
+        - error
 
     """
 
@@ -181,6 +182,7 @@ class LifeCycle:
         self.client_exited = controller_decorator("add")("on_client_exited")
         self.server_exited = controller_decorator("add")("on_server_exited")
         self.server_reload = controller_decorator("add")("on_server_reload")
+        self.on_error = controller_decorator("add")("on_error")
 
 
 controller = Controller()
