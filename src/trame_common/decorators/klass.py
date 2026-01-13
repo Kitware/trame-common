@@ -171,10 +171,25 @@ class LifeCycle:
         - server_exited
         - server_reload
         - error
+        - exception
+
+    For asynchronous callback, you can register them as. Note that "server_bind" is not available.
+
+    .. code-block:: text
+
+        - server_start_task
+        - server_ready_task
+        - client_connected_task
+        - client_exited_task
+        - server_exited_task
+        - server_reload_task
+        - error_task
+        - exception_task
 
     """
 
     def __init__(self):
+        # add
         self.server_start = controller_decorator("add")("on_server_start")
         self.server_bind = controller_decorator("add")("on_server_bind")
         self.server_ready = controller_decorator("add")("on_server_ready")
@@ -182,7 +197,20 @@ class LifeCycle:
         self.client_exited = controller_decorator("add")("on_client_exited")
         self.server_exited = controller_decorator("add")("on_server_exited")
         self.server_reload = controller_decorator("add")("on_server_reload")
-        self.on_error = controller_decorator("add")("on_error")
+        self.error = controller_decorator("add")("on_error")
+        self.exception = controller_decorator("add")("on_exception")
+
+        # add_task
+        self.server_start_task = controller_decorator("add_task")("on_server_start")
+        self.server_ready_task = controller_decorator("add_task")("on_server_ready")
+        self.client_connected_task = controller_decorator("add_task")(
+            "on_client_connected"
+        )
+        self.client_exited_task = controller_decorator("add_task")("on_client_exited")
+        self.server_exited_task = controller_decorator("add_task")("on_server_exited")
+        self.server_reload_task = controller_decorator("add_task")("on_server_reload")
+        self.error_task = controller_decorator("add_task")("on_error")
+        self.exception_task = controller_decorator("add_task")("on_exception")
 
 
 controller = Controller()
