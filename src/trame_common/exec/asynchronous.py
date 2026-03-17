@@ -4,9 +4,16 @@ import logging
 __all__ = [
     "create_task",
     "decorate_task",
+    "get_number_of_pending_tasks",
     "handle_task_result",
     "task",
 ]
+
+PENDING_TASKS = set()
+
+
+def get_number_of_pending_tasks():
+    return len(PENDING_TASKS)
 
 
 def handle_task_result(task: asyncio.Task) -> None:
@@ -29,7 +36,9 @@ def decorate_task(task):
     :return: The same task object
     :rtype: asyncio.Task
     """
+    PENDING_TASKS.add(task)
     task.add_done_callback(handle_task_result)
+    task.add_done_callback(PENDING_TASKS.discard)
     return task
 
 
