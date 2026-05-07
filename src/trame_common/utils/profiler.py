@@ -21,13 +21,16 @@ class Logger:
         self.log_perf_fps = None
         self.use_print()
 
-    def use_print(self, file=sys.stderr):
-        def log_perf(msg, dt_ms):
-            print(f"{msg:<60} {dt_ms:8.2f} ms", file=file, flush=True)
+    def action(self, msg):
+        self.log_perf(time.perf_counter(), msg, 0)
 
-        def log_perf_fps(msg, dt_ms):
+    def use_print(self, file=sys.stderr):
+        def log_perf(ts, msg, dt_ms):
+            print(f"{msg:<60} {ts:10.3f} {dt_ms:8.2f} ms", file=file, flush=True)
+
+        def log_perf_fps(ts, msg, dt_ms):
             print(
-                f"{msg:<60} {dt_ms:8.2f} ms {1000 / dt_ms:8.1f} fps",
+                f"{msg:<60} {ts:10.3f} {dt_ms:8.2f} ms {1000 / dt_ms:8.1f} fps",
                 file=file,
                 flush=True,
             )
@@ -46,11 +49,13 @@ class Logger:
             filter="trame_lumo_view.perf",
         )
 
-        def log_perf(msg, dt_ms):
-            logger.trace("{:<60} {:8.2f} ms", msg, dt_ms)
+        def log_perf(ts, msg, dt_ms):
+            logger.trace("{:<60} {:10.3f} {:8.2f} ms", msg, ts, dt_ms)
 
-        def log_perf_fps(msg, dt_ms):
-            logger.trace("{:<60} {:8.2f} ms {:8.1f} fps", msg, dt_ms, 1000 / dt_ms)
+        def log_perf_fps(ts, msg, dt_ms):
+            logger.trace(
+                "{:<60} {:8.3f} {:10.2f} ms {:8.1f} fps", msg, ts, dt_ms, 1000 / dt_ms
+            )
 
         self.log_perf = log_perf
         self.log_perf_fps = log_perf_fps
@@ -81,7 +86,7 @@ class Timer:
         if self.abort:
             self.abort = False
         elif LOGGER.enabled:
-            self.log(self.msg, self.dt)
+            self.log(self.t0, self.msg, self.dt)
 
 
 LOGGER = Logger()
@@ -110,6 +115,6 @@ def timer(label: str, show_fps: bool = False):
         else:
             dt_ms = (time.perf_counter() - t0) * 1000.0
             if show_fps:
-                LOGGER.log_perf_fps(label, dt_ms)
+                LOGGER.log_perf_fps(t0, label, dt_ms)
             else:
-                LOGGER.log_perf(label, dt_ms)
+                LOGGER.log_perf(t0, label, dt_ms)
