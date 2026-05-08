@@ -6,23 +6,83 @@ __all__ = [
     "LOGGER",
     "Logger",
     "Timer",
+    "clear_filter",
     "enable",
+    "exclude",
+    "include",
     "timer",
 ]
 
+KEY_SIZE = 2
+
+
+class Filter:
+    def __init__(self):
+        self._include = {}
+        self._exclude = {}
+
+    def include(self, head):
+        if len(head) < KEY_SIZE:
+            return
+
+        key = head[:KEY_SIZE]
+        self._include.setdefault(key, set()).add(head)
+
+    def exclude(self, head):
+        if len(head) < KEY_SIZE:
+            return
+
+        key = head[:KEY_SIZE]
+        self._exclude.setdefault(key, set()).add(head)
+
+    def clear(self, include=True, exclude=True):
+        if include:
+            self._include.clear()
+        if exclude:
+            self._exclude.clear()
+
+    def keep(self, msg):
+        if not self._exclude or not self._include or len(msg) < KEY_SIZE:
+            return True
+
+        # compute key for fast lookup
+        key = msg[:KEY_SIZE]
+
+        # Exclude
+        if self._exclude:
+            exclude_set = self._exclude.get(key, [])
+            for head in exclude_set:
+                if msg.startswith(head):
+                    return False
+
+        # Include all if empty
+        if not self._include:
+            return True
+
+        # Only show includes
+        if self._include:
+            include_set = self._include.get(key, [])
+            for head in include_set:
+                if msg.startswith(head):
+                    return True
+
+        return False
+
 
 class Logger:
-    __slots__ = ("abort", "enabled", "log_perf", "log_perf_fps")
+    __slots__ = ("abort", "enabled", "filter", "log_perf", "log_perf_fps")
 
     def __init__(self):
+        self.filter = Filter()
         self.abort = False
         self.enabled = False
         self.log_perf = None
         self.log_perf_fps = None
         self.use_print()
 
-    def action(self, msg):
-        self.log_perf(time.perf_counter(), msg, 0)
+    def action(self, msg, duration=0):
+        if self.enabled and self.filter.keep(msg):
+            self.log_perf(time.perf_counter(), msg, duration)
 
     def use_print(self, file=sys.stderr):
         def log_perf(ts, msg, dt_ms):
@@ -85,7 +145,7 @@ class Timer:
         self.dt = (time.perf_counter() - self.t0) * 1000.0
         if self.abort:
             self.abort = False
-        elif LOGGER.enabled:
+        elif LOGGER.enabled and LOGGER.filter.keep(self.msg):
             self.log(self.t0, self.msg, self.dt)
 
 
@@ -95,6 +155,24 @@ LOGGER = Logger()
 def enable(value: bool = True) -> Logger:
     """Turn performance instrumentation on or off globally."""
     LOGGER.enabled = bool(value)
+    return LOGGER
+
+
+def include(value: str = "") -> Logger:
+    """Register filter to only include messages starting with value."""
+    LOGGER.filter.include(value)
+    return LOGGER
+
+
+def exclude(value: str = "") -> Logger:
+    """Register filter to exclude messages starting with value."""
+    LOGGER.filter.exclude(value)
+    return LOGGER
+
+
+def clear_filter(include: bool = True, exclude: bool = True) -> Logger:
+    """Clear filter."""
+    LOGGER.filter.clear(include, exclude)
     return LOGGER
 
 
