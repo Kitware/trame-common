@@ -6,7 +6,7 @@ authors = [
 ]
 description = "Dependency less classes and functions for trame"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
@@ -23,8 +23,10 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   "pytest >=6",
+  "pytest-asyncio",
   "pytest-cov >=3",
   "nox",
+  "trame",
 ]
 dev = [
   "pytest >=6",

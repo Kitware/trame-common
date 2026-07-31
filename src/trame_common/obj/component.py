@@ -74,7 +74,7 @@ class TrameComponent:
                 trigger_names = fn.__dict__["_trame_trigger_names"]
                 for trigger_name in trigger_names:
                     logger.debug("trigger(%s)(%s)", trigger_name, k[0])
-                    self.server.trigger(f"{trigger_name}")(fn)
+                    self.ctrl.trigger(f"{trigger_name}")(fn)
 
             # Handle @ctrl.[add, once, add_task, set]
             if "_trame_controller" in fn.__dict__:
@@ -87,23 +87,37 @@ class TrameComponent:
                     decorate(name)(fn)
 
     def _unbind_annotated_methods(self):
+        methods_state = set()
+        ctrl_fn = {}  # {name: [fn...]}
         # Look for method decorator
         for k in inspect.getmembers(self.__class__, can_be_decorated):
             fn = getattr(self, k[0])
 
             # Handle @state.change
-            methods_to_detach = {}
             if "_trame_state_change" in fn.__dict__:
-                methods_to_detach.add(fn)
-
-            if methods_to_detach:
-                for fn_list in self.state._change_callbacks.values():
-                    to_remove = set(fn_list) | methods_to_detach
-                    for fn in to_remove:
-                        fn_list.remove(fn)
+                methods_state.add(fn)
 
             # Handle @trigger
-            # TODO
+            if "_trame_trigger_names" in fn.__dict__:
+                self.ctrl.trigger_unregister(fn)
 
             # Handle @ctrl
-            # TODO
+            if "_trame_controller" in fn.__dict__:
+                actions = fn.__dict__["_trame_controller"]
+                for action in actions:
+                    name = action.get("name")
+                    ctrl_fn.setdefault(name, set()).add(fn)
+
+        # Remove @state.change
+        if methods_state:
+            for k, v in self.state._change_callbacks.items():
+                self.state._change_callbacks[k] = [
+                    (fn, translator) for fn, translator in v if fn not in methods_state
+                ]
+
+        # Remove ctrl method:
+        if ctrl_fn:
+            for k, v in ctrl_fn.items():
+                ctrl_fn = self.ctrl[k]
+                for f in v:
+                    ctrl_fn.discard(f)
