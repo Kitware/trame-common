@@ -44,14 +44,13 @@ class Throttle:
 
     async def _trottle(self):
         self._pending = True
-        if self._requests:
-            self._fn(*self._last_args, **self._last_kwargs)
-            self._requests = 0
-
-        await asyncio.sleep(self._ts)
-        if self._requests > 0:
-            await self._trottle()
-        self._pending = False
+        try:
+            while self._requests:
+                self._requests = 0
+                self._fn(*self._last_args, **self._last_kwargs)
+                await asyncio.sleep(self._ts)
+        finally:
+            self._pending = False
 
     def __call__(self, *args, **kwargs):
         """Function call wrapper that will throttle the actual function provided at construction"""
