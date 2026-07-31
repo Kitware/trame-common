@@ -97,7 +97,7 @@ def reload(func, perform_checks=True):
     to determine whether or not the function should be skipped.
     """
     if perform_checks:
-        if not isinstance(func, (types.FunctionType, types.MethodType)):
+        if not isinstance(func, types.FunctionType | types.MethodType):
             # We only allow reloading of function and method types
             return func
 
