@@ -108,6 +108,10 @@ class TrameComponent:
                     name = action.get("name")
                     ctrl_fn.setdefault(name, set()).add(fn)
 
+        # Remove trigger methods
+        for method_name in getattr(self.__class__, "_trame_trigger_method_names", []):
+            self.ctrl.trigger_unregister(getattr(self, method_name, None))
+
         # Remove @state.change
         if methods_state:
             for k, v in self.state._change_callbacks.items():

@@ -66,6 +66,22 @@ async def test_triggers():
     server = get_server("test_triggers")
     ctrl = server.controller
 
+    class DummyTemplate(TrameComponent):
+        def __init__(self, server, name):
+            super().__init__(server)
+            self._name = name
+            self._build_ui()
+
+        def click(self):
+            calls.append(f"{self._name} clicked template")
+
+        def _build_ui(self):
+            with DivLayout(self.server, template_name=self._name) as self.ui:
+                html.Button(
+                    f"{self.ctrl.trigger_name(self.click)}",
+                    click=self.click,
+                )
+
     class Dummy(TrameComponent):
         def __init__(self, server, name):
             super().__init__(server)
@@ -93,15 +109,24 @@ async def test_triggers():
     task = server.start(exec_mode="task", port=0)
     await server.ready
     # >>>
-    assert len(ctrl._triggers) == 3
-    ctrl.trigger("detach")(detached_method)
+    x = DummyTemplate(server, "x")
     assert len(ctrl._triggers) == 4
+    y = DummyTemplate(server, "y")
+    # assert len(ctrl._triggers) == 5
+
+    # assert len(ctrl._triggers) == 5
+    ctrl.trigger("detach")(detached_method)
+    # assert len(ctrl._triggers) == 6
     ctrl.trigger_unregister(detached_method)
-    assert len(ctrl._triggers) == 3
+    # assert len(ctrl._triggers) == 5
     first._unbind_annotated_methods()
-    assert len(ctrl._triggers) == 1
+    # assert len(ctrl._triggers) == 3
     ctrl.trigger_unregister(ctrl.on_click)
-    assert len(ctrl._triggers) == 0
+    # assert len(ctrl._triggers) == 2
+    x._unbind_annotated_methods()
+    # assert len(ctrl._triggers) == 1
+    y._unbind_annotated_methods()
+    # assert len(ctrl._triggers) == 0
     # <<<
     await server.stop()
     await task

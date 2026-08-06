@@ -40,22 +40,31 @@ details, see
 
 ## Development steps
 
-- Clone the repository using `git clone`
-- Install pre-commit via `pip install pre-commit` or `pip install -e ".[dev]"`
-- Run `pre-commit install` to set up pre-commit hooks
-- Run `pre-commit install --hook-type commit-msg` to register commit-msg hook
-- Make changes to the code, and commit your changes to a separate branch. Use
-  [conventional commit messages](https://www.conventionalcommits.org/en/v1.0.0/).
-- Create a fork of the repository on GitHub
-- Push your branch to your fork, and open a pull request
+```sh
+# Create venv and install all dependencies
+uv sync --all-extras --dev
+
+# Activate environment
+source .venv/bin/activate
+
+# Install commit analysis
+pre-commit install
+pre-commit install --hook-type commit-msg
+
+# Run pre-commit
+pre-commit run --all-files
+
+# Run tests
+pytest
+```
+
+Make sure your commit messages follow
+[conventional commit messages](https://www.conventionalcommits.org/en/v1.0.0/).
 
 **Tips**
 
 - When first creating a new project, it is helpful to run
   `pre-commit run --all-files` to ensure all files pass the pre-commit checks.
-- A quick way to fix `ruff` issues is by installing ruff (`pip install ruff`)
-  and running the `ruff check --fix .` or `ruff format` command at the root of
-  your repository.
 - A quick way to fix `codespell` issues is by installing codespell
   (`pip install codespell`) and running the `codespell -w` command at the root
   of your directory.
