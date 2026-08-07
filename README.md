@@ -58,11 +58,12 @@ pre-commit run --all-files
 pytest
 ```
 
-Make sure your commit messages follow
-[conventional commit messages](https://www.conventionalcommits.org/en/v1.0.0/).
-
 **Tips**
 
+- Use
+  [conventional commit messages](https://www.conventionalcommits.org/en/v1.0.0/)
+  for your commit message so the CI will generate release notes and trigger
+  release when needed.
 - When first creating a new project, it is helpful to run
   `pre-commit run --all-files` to ensure all files pass the pre-commit checks.
 - A quick way to fix `codespell` issues is by installing codespell
