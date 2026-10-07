@@ -1,10 +1,12 @@
 import functools
 import inspect
 import logging
+from collections.abc import Callable
+from typing import Any, TypeVar
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 logger = logging.getLogger(__name__)
-
-# logging.basicConfig(level=logging.DEBUG)
 
 
 def can_be_decorated(x):
@@ -102,10 +104,10 @@ class TrameApp:
         return klass
 
 
-def change(*args):
+def change(*args: str) -> Callable[[F], F]:
     """Method decorator for state change"""
 
-    def decorate(f):
+    def decorate(f: F) -> F:
         if not hasattr(f, "_trame_state_change"):
             f._trame_state_change = []
         f._trame_state_change.extend(args)
@@ -114,10 +116,10 @@ def change(*args):
     return decorate
 
 
-def trigger(*args):
+def trigger(*args: str) -> Callable[[F], F]:
     """Method decorator to assign a trigger name to a function"""
 
-    def decorate(f):
+    def decorate(f: F) -> F:
         if not hasattr(f, "_trame_trigger_names"):
             f._trame_trigger_names = []
         f._trame_trigger_names.extend(args)
