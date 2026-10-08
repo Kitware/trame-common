@@ -2,9 +2,11 @@ import functools
 import inspect
 import logging
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
+P = ParamSpec("P")
+R = TypeVar("R")
 
 logger = logging.getLogger(__name__)
 
@@ -128,9 +130,11 @@ def trigger(*args: str) -> Callable[[F], F]:
     return decorate
 
 
-def controller_decorator(method):
-    def decorator(*args):
-        def decorate(f):
+def controller_decorator(
+    method: str,
+) -> Callable[..., Callable[[Callable[P, R]], Callable[P, R]]]:
+    def decorator(*args: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
+        def decorate(f: Callable[P, R]) -> Callable[P, R]:
             if not hasattr(f, "_trame_controller"):
                 f._trame_controller = []
             for name in args:
