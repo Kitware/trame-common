@@ -130,7 +130,9 @@ def trigger(*args: str) -> Callable[[F], F]:
     return decorate
 
 
-def controller_decorator(method: str) -> Callable[..., Callable[[Callable[P, R]], Callable[P, R]]]:
+def controller_decorator(
+    method: str,
+) -> Callable[..., Callable[[Callable[P, R]], Callable[P, R]]]:
     def decorator(*args: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
         def decorate(f: Callable[P, R]) -> Callable[P, R]:
             if not hasattr(f, "_trame_controller"):
