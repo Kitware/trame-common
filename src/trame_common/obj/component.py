@@ -1,6 +1,9 @@
 import inspect
 import logging
 
+from trame_common.obj import mcp as mcp_options
+from trame_common.obj.mcp import MCPExposable
+
 __all__ = [
     "TrameComponent",
 ]
@@ -12,11 +15,26 @@ def can_be_decorated(x):
     return inspect.ismethod(x) or inspect.isfunction(x)
 
 
-class TrameComponent:
+class TrameComponent(MCPExposable):
     """
     Base trame class that has access to a trame server instance
     on which we provide simple accessor and method decoration capabilities.
+
+    A subclass declares what agents may use with the ``@mcp.method`` and
+    ``@mcp.property`` markers (``from trame.decorators import mcp``), or with
+    the ``mcp=`` class keyword, which takes True (declared, with no other
+    options), False (never exposed) or a dict of ``description``,
+    ``all_methods``, ``methods``, ``properties`` and ``constructor``. Agents
+    reach an instance once the app names it (``mcp_expose``), or through a
+    visible property of an object they reach.
+
+    A component built once may also mark the app's own tools, resources and
+    prompts (``@mcp.tool``, ``@mcp.resource``, ``@mcp.prompt``): they are
+    added when it is built and removed when it is unbound.
     """
+
+    # The callbacks it binds on the server keep it alive while in use
+    _mcp_hold_weakly = True
 
     def __init__(self, server, ctx_name=None, **_):
         """
@@ -53,6 +71,18 @@ class TrameComponent:
         """Return the associated server context"""
         return self.server.context
 
+    # -------------------------------------------------------------------------
+    # Agents (MCP)
+    # -------------------------------------------------------------------------
+
+    @property
+    def mcp(self):
+        """Return the MCP server of the associated trame server"""
+        return self.server.mcp
+
+    def _mcp_declares(self):
+        return mcp_options.declares(type(self))
+
     def _bind_annotated_methods(self):
         # Look for method decorator
         for k in inspect.getmembers(self.__class__, can_be_decorated):
@@ -85,6 +115,10 @@ class TrameComponent:
                     decorate = getattr(self.ctrl, method)
                     logger.debug("ctrl.%s(%s)(%s)", method, name, k[0])
                     decorate(name)(fn)
+
+        # Agents (MCP): add the app's own tools it marks (a component built once)
+        if mcp_options.first_class_members(type(self)) and hasattr(self.server, "mcp"):
+            self.server.mcp._add_component_tools(self)
 
     def _unbind_annotated_methods(self):
         methods_state = set()
@@ -125,3 +159,9 @@ class TrameComponent:
                 ctrl_fn = self.ctrl[k]
                 for f in v:
                     ctrl_fn.discard(f)
+
+        # Withdraw its names from agents (MCP), and the tools it added
+        if self._mcp_declares() and hasattr(self.server, "mcp"):
+            self.mcp_unexpose()
+        if mcp_options.first_class_members(type(self)) and hasattr(self.server, "mcp"):
+            self.server.mcp._remove_component_tools(self)

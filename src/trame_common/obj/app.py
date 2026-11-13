@@ -10,10 +10,28 @@ class TrameApp(TrameComponent):
     """
     Base trame class that has access to a trame server instance
     on which we provide simple accessor and method decoration capabilities.
+
+    With ``mcp_enabled=True``, the app turns agent access (MCP) on for its
+    server when it is built, as ``server.mcp.enabled = True`` does. The
+    ``--no-mcp`` launch flag still takes precedence. When ``mcp_enabled`` is
+    left out, agent access is left as it is.
     """
 
-    def __init__(self, server=None, client_type="vue3", ctx_name=None, **_):
+    def __init__(
+        self, server=None, client_type="vue3", ctx_name=None, mcp_enabled=False, **_
+    ):
+        """
+        Initialize TrameApp with its server.
+
+        Keyword arguments:
+        server -- the server, or its name (default None, the default server)
+        client_type -- the client type to set on the server (default "vue3")
+        ctx_name -- name to use to bind current instance to server.context (default None)
+        mcp_enabled -- turn on agent access for the server (default False)
+        """
         super().__init__(get_server(server, client_type=client_type), ctx_name=ctx_name)
+        if mcp_enabled:
+            self.server.mcp.enabled = True
 
     async def display_cell(self, *, height=None, width=None):
         from trame_client.ui.core import AbstractLayout
